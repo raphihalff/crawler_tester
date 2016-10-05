@@ -1,0 +1,3 @@
+[submodule "crawler4j"]
+	path = crawler4j
+	url = https://github.com/yasserg/crawler4j.git
