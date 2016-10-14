@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+
+<project name="crawler_tester" default="all" >
+    
+    <property name="src_dir" location="src" />
+    <property name="out_dir" location="out" />
+    <property name="libs_dir" location="libs" />
+    <property name="crawler" location="crawler4j" />
+    
+    <property name="crawler_exts" value="crawler_starter" />
+    <property name="crawler_jar" location="${libs_dir}/crawler4j-4.3-SNAPSHOT-jar-with-dependencies.jar" />
+
+    <property name="overall_path" value="edu/columbia/cs" />
+    <property name="src_path" location="${src_dir}/${overall_path}" />
+    <property name="classes_path" location="${out_dir}/classes/${overall_path}" />
+
+
+    <target name="gen_jar" description="update the submodule cralwer4j and generates jar" > 
+        <!-- Update the submodule -->
+        <exec executable="git" dir="${crawler}" >
+            <arg line="submodule update" />
+        </exec>
+        <!-- Create the cralwer4j jar -->
+        <exec executable="mvn" dir="${crawler}" >
+            <arg line="clean install" />
+        </exec>
+    </target>
+
+    <target name="update_lib" description="places jar in libs_dir" 
+        depends="gen_jar" > 
+        <mkdir dir="${libs_dir}" />
+        <!-- Copy jar to libs_dir -->
+        <copy file="${crawler}/target/crawler4j-4.3-SNAPSHOT-jar-with-dependencies.jar" todir="${libs_dir}" />
+    </target>
+    
+    <target name="setup_crawler" description="compile the classes that extend the crawler" depends="init" >
+        <mkdir dir="${classes_path}/${crawler_exts}" />
+        <javac srcdir="${src_path}/${crawler_exts}" destdir="${classes_path}/${crawler_exts}"
+            includeAntRuntime="false" debug="true" debugLevel="lines,source"
+            classpath="${crawler_jar}" >
+            <include name="TestCrawler.java" />
+            <include name="TestDriver.java" />
+        </javac>
+    </target>
+
+    <target name="init" description="create output directories" >
+        <mkdir dir="${out_dir}" />
+        <mkdir dir="${classes_path}" />
+    </target>
+
+    <target name="clean" description="cleans up output directory">
+        <delete dir="${out_dir}" />
+    </target>
+</project>
+
+
