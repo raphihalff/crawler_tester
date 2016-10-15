@@ -38,7 +38,7 @@ import java.io.IOException;
  * @author Raphi 
  * 
  */
-class DNSServer
+public class DNSServer
 {
         private static String[] domain;
         private static InetAddress[] IP;
@@ -119,7 +119,7 @@ class DNSServer
                 DatagramSocket dnsSocket = null;
                 try {
                     dnsSocket = new DatagramSocket(DNS_PORT);
-                    //System.out.println("DNS Listening on: " + dnsSocket.getLocalAddress().getHostAddress() + ":" + DNS_PORT);
+                    System.err.println("DNS Listening on: " + dnsSocket.getLocalAddress().getHostAddress() + ":" + DNS_PORT);
                 } catch (SocketException e) {
                     System.err.println("Failed to establish DNS socket.");
                     System.exit(1);

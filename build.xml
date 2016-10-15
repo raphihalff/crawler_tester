@@ -10,11 +10,14 @@
     
     <property name="crawler_exts" value="crawler_starter" />
     <property name="dns_server" value="dns_server" />
+    <property name="tests" value="tests" />
     <property name="crawler_jar" location="${libs_dir}/crawler4j-4.3-SNAPSHOT-jar-with-dependencies.jar" />
-
+        
     <property name="overall_path" value="edu/columbia/cs" />
     <property name="src_path" location="${src_dir}/${overall_path}" />
     <property name="classes_path" location="${out_dir}/classes/${overall_path}" />
+
+    <property name="tests_pkg" value="edu.columbia.cs.tests" />
 
     <target name="init" description="create output directories" >
         <mkdir dir="${out_dir}" />
@@ -68,8 +71,27 @@
             <include name="tools.java" />
         </javac>
     </target>
+
+    <target name="tests" description="compile the classes in the tests dir" depends="init, dns_server" >
+        <mkdir dir="${classes_path}/${tests}" />
+        <javac srcdir="${src_path}/${tests}" destdir="${classes_dir}"
+            includeAntRuntime="false" debug="true" debugLevel="lines,source" 
+            classpath="${classes_path}/${dns_server}" >
+            <include name="TestCase.java" />
+            <include name="Main.java" />
+        </javac>
+    </target>
+
+    <target name="run">
+        <exec executable="authbind" dir="${classes_dir}" >
+            <arg line="java -classpath ${classes_dir} ${tests_pkg}.Main" />
+        </exec>
+        <!--
+        <java classname="${tests_pkg}.Main" classpath="${classes_dir}"  output="output.txt" />
+        -->
+    </target>
     
-    <target name="all" description="compile all classes" depends="clean, setup_crawler, dns_server" >
+    <target name="all" description="compile all classes" depends="clean, setup_crawler, dns_server, tests" >
     </target>
 
     <target name="clean" description="cleans up output directory">

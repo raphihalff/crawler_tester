@@ -12,17 +12,43 @@
  *
  * @author Raphi
  */
-public class TestCase {
+
+package edu.columbia.cs.tests;
+
+import edu.columbia.cs.dns_server.*;
+
+public class TestCase extends Thread{
     
     private final int DEPTH = 2;
-    private final String[] SEEDS = {"www.example.com", "www.ids.org", "www.av-hacks.net"};
+    private final String[] SEED_URL = {"www.example.com", "www.ids.org", "www.av-hacks.net"};
+    private final String[] SEED_IP = {"127.0.0.1", "127.0.0.2", "127.0.0.3"};
 
+	
     public TestCase() {
+        runDNS();
         /* @TODO make instance of Monitor */
         /* @TODO etsablish the servers */
+    }
 
-        /* Setup the DNS Server */
+    private void runDNS() {
+        /* Set up the DNS server's arguements */
+        String[] dns_args = new String[SEED_URL.length + SEED_IP.length + 2];
+        dns_args[0] = "-s"; //to set DNS Server without load balancer
+        dns_args[1] = "53"; //port number 
+        int pos, i;
+        pos = 2;
+        for (i = 0; i < SEED_URL.length; i++) {
+            dns_args[pos++] = SEED_URL[i];
+            dns_args[pos++] = SEED_IP[i];
+        }
 
+        /* Setup the DNS Server in its own thread */
+        Thread dns_server = new Thread(new Runnable() {
+            public void run() {
+                    DNSServer.main(dns_args);
+            }
+        });
+        dns_server.start();
     }
 } 
 
