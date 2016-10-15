@@ -5,16 +5,22 @@
     <property name="src_dir" location="src" />
     <property name="out_dir" location="out" />
     <property name="libs_dir" location="libs" />
+    <property name="classes_dir" location="${out_dir}/classes" />
     <property name="crawler" location="crawler4j" />
     
     <property name="crawler_exts" value="crawler_starter" />
+    <property name="dns_server" value="dns_server" />
     <property name="crawler_jar" location="${libs_dir}/crawler4j-4.3-SNAPSHOT-jar-with-dependencies.jar" />
 
     <property name="overall_path" value="edu/columbia/cs" />
     <property name="src_path" location="${src_dir}/${overall_path}" />
     <property name="classes_path" location="${out_dir}/classes/${overall_path}" />
 
-
+    <target name="init" description="create output directories" >
+        <mkdir dir="${out_dir}" />
+        <mkdir dir="${classes_path}" />
+    </target>
+    
     <target name="gen_jar" description="update the submodule cralwer4j and generates jar" > 
         <!-- Update the submodule -->
         <exec executable="git" dir="${crawler}" >
@@ -35,17 +41,35 @@
     
     <target name="setup_crawler" description="compile the classes that extend the crawler" depends="init" >
         <mkdir dir="${classes_path}/${crawler_exts}" />
-        <javac srcdir="${src_path}/${crawler_exts}" destdir="${classes_path}/${crawler_exts}"
+        <javac srcdir="${src_path}/${crawler_exts}" destdir="${classes_dir}"
             includeAntRuntime="false" debug="true" debugLevel="lines,source"
             classpath="${crawler_jar}" >
-            <include name="TestCrawler.java" />
             <include name="TestDriver.java" />
+            <include name="TestCrawler.java" />
         </javac>
     </target>
-
-    <target name="init" description="create output directories" >
-        <mkdir dir="${out_dir}" />
-        <mkdir dir="${classes_path}" />
+    
+    <target name="dns_server" description="compile the dns_server" depends="init" >
+        <mkdir dir="${classes_path}/${dns_server}" />
+        <javac srcdir="${src_path}/${dns_server}" destdir="${classes_dir}" 
+            includeAntRuntime="false" debug="true" debugLevel="lines,source" >
+            <include name="DNSEntity.java" />
+            <include name="DNSTest.java" />
+            <include name="DNSRequest.java" />
+            <include name="DNSResponse.java" />
+            <include name="DNSServer.java" />
+            <include name="Decider.java" />
+            <include name="HostList.java" />
+            <include name="HostTable.java" />
+            <include name="HostStore.java" />
+            <include name="LoadServer.java" />
+            <include name="ServerControl.java" />
+            <include name="UDPClient.java" />
+            <include name="tools.java" />
+        </javac>
+    </target>
+    
+    <target name="all" description="compile all classes" depends="clean, setup_crawler, dns_server" >
     </target>
 
     <target name="clean" description="cleans up output directory">

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+package edu.columbia.cs.crawler_starter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +46,12 @@ public class TestDriver {
             seeds_supplied = true;
         }
 
+    /*
+     * Have the crawler use our DNS server running locally
+     */
+        System.setProperty("sun.net.spi.nameservice.nameservers", "127.0.0.1");
+        System.setProperty("sun.net.spi.nameservice.provider.1", "dns,sun");
+    
     /*
      * crawlStorageFolder is a folder where intermediate crawl data is
      * stored.
