@@ -7,6 +7,7 @@ public class TestDriver {
     private static int depth;
     private static String[] seed_urls;
     private static String crawl_dir;
+    private static final String protocol = "http://";
 
     /**
      * Runs the Test and the Crawler.
@@ -28,12 +29,12 @@ public class TestDriver {
         depth = test.getDepth();
         seed_urls = test.getSeedURLs();
         
-        /* Compile args for crawler */
+        /* Compile args for crawler; NOTE: add protocol!*/
         String[] crawler_args = new String[2 + seed_urls.length];
         crawler_args[0] = crawl_dir;
         crawler_args[1] = depth + "";
         for (int i = 2; i < crawler_args.length; i++) {
-            crawler_args[i] = seed_urls[i-2];
+            crawler_args[i] = protocol + seed_urls[i-2];
         }
         /* start crawler */
         System.out.print("\nStarting crawler\n");
