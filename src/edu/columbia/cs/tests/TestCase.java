@@ -56,7 +56,10 @@ public class TestCase extends Thread{
        
         int max_depth = DEPTH + XTRA_DEPTH;
         int children_per_parent = DEFAULT_SUBDOMAINS.length;
-        int total_children = (int)java.lang.Math.pow((double)children_per_parent, (double)DEPTH);
+        int total_children = 0;
+        for (int i = max_depth; i > 0; i--) {
+            total_children += (int)java.lang.Math.pow((double)children_per_parent, (double)i); 
+        }
 
         HTMLServerNode[] nodes = new HTMLServerNode[total_children];
 
@@ -110,7 +113,7 @@ public class TestCase extends Thread{
         String replacement_tkn = "d" + cur_depth + "c" + family_index;
 
         for (int i = 0; i < cpp; i++) {
-            children_paths[i] = server + new String(DEFAULT_SUBDOMAINS[i]).replaceFirst("@", replacement_tkn); 
+            children_paths[i] = new String(DEFAULT_SUBDOMAINS[i]).replaceFirst("@", replacement_tkn); 
         }
         
         return children_paths;

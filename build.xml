@@ -89,7 +89,7 @@
     <target name="run">
         <mkdir dir="${out_dir}/crawl_data" />
         <exec executable="authbind" dir="${classes_dir}" >
-            <arg line="java -classpath ${classes_dir} ${tests_pkg}.TestDriver" />
+            <arg line="java -classpath ${classes_dir}:${crawler_jar} ${tests_pkg}.TestDriver ${out_dir}/crawl_data" />
         </exec>
         <!--
         <java classname="${tests_pkg}.Main" classpath="${classes_dir}"  output="output.txt" />
