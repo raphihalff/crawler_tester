@@ -29,8 +29,8 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
  * Adapted from Yasser Ganjisaffar
  * This starts a single-thread crawler at command line specified depth with and URL seeds.
  */
-public class TestDriver {
-    private static final Logger logger = LoggerFactory.getLogger(TestDriver.class);
+public class CrawlerStarter {
+    private static final Logger logger = LoggerFactory.getLogger(CrawlerStarter.class);
 
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {
@@ -139,6 +139,6 @@ public class TestDriver {
      * Start the crawl. This is a blocking operation, meaning that your code
      * will reach the line after this only when crawling is finished.
      */
-        controller.start(TestCrawler.class, numberOfCrawlers);
+        controller.start(CrawlerHandler.class, numberOfCrawlers);
     }
 }

@@ -30,7 +30,7 @@ import edu.uci.ics.crawler4j.url.WebURL;
 /**
  * Adapted from Yasser Ganjisaffar
  */
-public class TestCrawler extends WebCrawler {
+public class CrawlerHandler extends WebCrawler {
     private static final Pattern BAD_EXTENSIONS = Pattern.compile(".*\\.(js|mp3|zip|gz|css|bmp|gif|jpg|png)$");
 
     /**

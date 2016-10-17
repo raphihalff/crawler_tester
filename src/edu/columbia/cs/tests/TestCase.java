@@ -18,16 +18,128 @@ package edu.columbia.cs.tests;
 import edu.columbia.cs.dns_server.*;
 
 public class TestCase extends Thread{
-    
+    /* The depth we want to crawl to (inclusive) */
     private final int DEPTH = 2;
+    /* Number of unreachable levels, beyond our crawling depth; keep at one for now */
+    private final int XTRA_DEPTH = 1;
+    /* Server URLs to be given to crawler as seed urls and to be given to DNS */
     private final String[] SEED_URL = {"www.example.com", "www.ids.org", "www.av-hacks.net"};
-    private final String[] SEED_IP = {"127.0.0.1", "127.0.0.2", "127.0.0.3"};
-
-	
+    /* The last byte of the corresponding local IPs (i.e. 127.0.0.last_byte) */
+    private final byte[] SEED_IP = {(byte)0b0001, (byte)0b0010, (byte)0b0011};
+    /* The subdomains to be layered as children under seed urls, the '@' will be replaced by identifiers */
+    private final String[] DEFAULT_SUBDOMAINS = {
+        "/index@.html", 
+        "/please_enter@", 
+        "/read/this/page@",
+        "/go/here@.html"};
+    private final String ROBOTS = "User-agent: *\nDisallow: \n";
+    private TestServer[] servers; 
+    
     public TestCase() {
+        
+        /* Set up and run DNS server */
         runDNS();
+        
+        /* Establish the servers */
+        servers = new TestServer[SEED_URL.length];
+        setupServers();
+        startServers();
+
         /* @TODO make instance of Monitor */
-        /* @TODO etsablish the servers */
+    }
+
+    /**
+     * For the server name given this returns a list of all children nodes (unreachable included)
+     * @param server_name       the server these nodes belong to
+     */
+    private HTMLServerNode[] generateHTMLNodes(String server_name) {
+       
+        int max_depth = DEPTH + XTRA_DEPTH;
+        int children_per_parent = DEFAULT_SUBDOMAINS.length;
+        int total_children = (int)java.lang.Math.pow((double)children_per_parent, (double)DEPTH);
+
+        HTMLServerNode[] nodes = new HTMLServerNode[total_children];
+
+        int cur_depth = 1;
+        int child_index = 0; 
+        int sib_index = 0; 
+        int main_index = 0;
+
+        while (cur_depth <= max_depth) {
+
+            int gen_sze = (int)java.lang.Math.pow((double)children_per_parent, (double)cur_depth - 1);
+            child_index = 0;
+            while (child_index < gen_sze) {
+                
+                String[] paths = getPathnames(server_name, cur_depth, child_index, children_per_parent, max_depth);    
+                sib_index = 0;
+                while (sib_index < children_per_parent) {
+                  
+                    int fam_index = (child_index * children_per_parent) + sib_index;
+                    nodes[main_index] = new HTMLServerNode(
+                            server_name, 
+                            paths[sib_index], 
+                            "", "", 
+                            getPathnames(server_name, cur_depth + 1, fam_index, children_per_parent, max_depth));
+
+                    sib_index++;
+                    main_index++;
+            
+                }
+                child_index++;
+            }
+            cur_depth++;
+        }
+        return nodes;
+    }
+
+    /**
+     * Return the pathnames of the sibling nodes at given depth and index.
+     * @param server            the server name these sub_domains are nested under
+     * @param cur_depth         the depth of the pathnames
+     * @param family_index      the grouping identifier (all sibling nodes have same family index)
+     * @param cpp               the number of children per parent
+     * @param max_depth         the last level of sub_domains (with no children of their own)
+     */
+    private String[] getPathnames(String server, int cur_depth, int family_index, int cpp, int max_depth) { 
+        if (cur_depth > max_depth){
+            return new String[0];
+        }
+        
+        String[] children_paths = new String[cpp];
+        String replacement_tkn = "d" + cur_depth + "c" + family_index;
+
+        for (int i = 0; i < cpp; i++) {
+            children_paths[i] = server + new String(DEFAULT_SUBDOMAINS[i]).replaceFirst("@", replacement_tkn); 
+        }
+        
+        return children_paths;
+    }
+
+    private void setupServers() {
+        /* Generate subdomain nodes for each server */
+        for (int i = 0; i < SEED_URL.length; i++) {
+            HTMLServerNode[] nodes = generateHTMLNodes(SEED_URL[i]);
+            HTMLServerNode[] starting_nodes = new HTMLServerNode[DEFAULT_SUBDOMAINS.length];
+            for (int j = 0; j < DEFAULT_SUBDOMAINS.length; j++){
+                starting_nodes[j] = nodes[j];
+            } 
+            servers[i] = new TestServer(SEED_URL[i], SEED_IP[i], nodes, starting_nodes, ROBOTS);
+        }
+    }
+
+    private void startServers() {
+        for (TestServer server : servers) {
+            if (!server.start()){
+                System.err.println("Problem starting TestServer");
+            }
+        }
+    } 
+
+    public void stopServers(){
+        for (TestServer server : servers) {
+            server.stop();
+        }
     }
 
     private void runDNS() {
@@ -39,7 +151,7 @@ public class TestCase extends Thread{
         pos = 2;
         for (i = 0; i < SEED_URL.length; i++) {
             dns_args[pos++] = SEED_URL[i];
-            dns_args[pos++] = SEED_IP[i];
+            dns_args[pos++] = "127.0.0." + (int)SEED_IP[i];
         }
 
         /* Setup the DNS Server in its own thread */
@@ -49,6 +161,14 @@ public class TestCase extends Thread{
             }
         });
         dns_server.start();
+    }
+
+    public String[] getSeedURLs() {
+        return SEED_URL;
+    }
+
+    public int getDepth() { 
+        return DEPTH;
     }
 } 
 
