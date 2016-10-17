@@ -117,11 +117,16 @@ public class DNSServer
 
 		//Socket listening for DNS requests
                 DatagramSocket dnsSocket = null;
+		byte[] addr = new byte[]{127, 0, 0, 1};
                 try {
-                    dnsSocket = new DatagramSocket(DNS_PORT);
+                    InetAddress dns_addr = InetAddress.getByAddress(addr);
+                    dnsSocket = new DatagramSocket(DNS_PORT, dns_addr);
                     System.err.println("DNS Listening on: " + dnsSocket.getLocalAddress().getHostAddress() + ":" + DNS_PORT);
                 } catch (SocketException e) {
                     System.err.println("Failed to establish DNS socket.");
+                    System.exit(1);
+                } catch (UnknownHostException uhe) {
+                    System.err.println("Problem running DNS on 127.0.0.1");
                     System.exit(1);
                 }
 		byte[] dnsQuery = new byte[1024];//the domain name query 
