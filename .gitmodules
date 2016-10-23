@@ -1,0 +1,3 @@
+[submodule "crawler4j_dns"]
+	path = crawler4j
+	url = https://github.com/yujokang/crawler4j.git
