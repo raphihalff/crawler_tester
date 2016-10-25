@@ -8,7 +8,7 @@ import java.net.HttpURLConnection;
 public class HTMLServerNode extends TestServerNode
 {
 	/** the content type for an HTML node */
-	private static final String CONTENT_TYPE_HTML = "text/html";
+	protected static final String CONTENT_TYPE_HTML = "text/html";
 
 	/** the template for generating an HTML link */
 	private static final String
@@ -28,7 +28,7 @@ public class HTMLServerNode extends TestServerNode
 	private static final String
 	HTML_TEMPLATE = "<html><head></head><body>\n%s\n</body></html>";
 
-	private static String generateContent(String[] child_urls)
+        protected static String generateContent(String[] child_urls)
 	{
 		StringBuilder links_builder = new StringBuilder();
 

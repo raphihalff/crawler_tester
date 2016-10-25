@@ -1,11 +1,14 @@
 package edu.columbia.cs.tests;
 
 import edu.columbia.cs.crawler_starter.CrawlerStarter;
+import java.net.InetAddress;
+import org.apache.http.impl.conn.InMemoryDnsResolver;
 
 public class TestDriver {
 
     private static int depth;
     private static String[] seed_urls;
+    private static InetAddress[] seed_ips;
     private static String crawl_dir;
     private static final String protocol = "http://";
 
@@ -21,15 +24,25 @@ public class TestDriver {
         }
         crawl_dir = args[0];
 
+
         System.out.print("\nSetting up test....");
         /* Run the test which sets up DNS and Servers */
         TestCase test = new TestCase();
-        System.out.print("DONE\n");
-
+        
         depth = test.getDepth();
         seed_urls = test.getSeedURLs();
-        
-        /* Compile args for crawler; NOTE: add protocol!*/
+        seed_ips = test.getSeedIPs();
+
+        /* Setup the InMemoryDNSResolver object */
+        InMemoryDnsResolver dns = new InMemoryDnsResolver();
+        for (int i = 0; i < seed_urls.length; i++) {
+            dns.add(seed_urls[i], seed_ips[i]);
+        }
+
+        System.out.print("DONE\n");
+
+        /* Compile args for crawler; 
+         * NOTE: add protocol! */ 
         String[] crawler_args = new String[2 + seed_urls.length];
         crawler_args[0] = crawl_dir;
         crawler_args[1] = depth + "";
@@ -39,7 +52,8 @@ public class TestDriver {
         /* start crawler */
         System.out.print("\nStarting crawler\n");
         try {
-            CrawlerStarter.main(crawler_args); 
+            CrawlerStarter crwl_strtr = new CrawlerStarter(dns);
+            crwl_strtr.main(crawler_args); 
         } catch (Exception e) {
             e.printStackTrace();
         }

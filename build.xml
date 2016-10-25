@@ -76,17 +76,28 @@
         <mkdir dir="${classes_path}/${tests}" />
         <javac srcdir="${src_path}/${tests}" destdir="${classes_dir}"
             includeAntRuntime="false" debug="true" debugLevel="lines,source" 
-            classpath="${classes_path}/${dns_server}:${classes_path}/${crawler_starter}" >
+            classpath="${classes_path}/${dns_server}:${classes_path}/${crawler_starter}:${crawler_jar}" >
             <include name="TestCase.java" />
             <include name="HTMLServerNode.java" />
             <include name="TestDriver.java" />
             <include name="TestServer.java" />
             <include name="TestServerNode.java" />
             <include name="TestVisitRecord.java" />
+            <include name="Monitor.java" />
         </javac>
     </target>
-
+    
     <target name="run">
+        <mkdir dir="${out_dir}/crawl_data" />
+        <exec executable="authbind" dir="${classes_dir}" >
+            <arg line="java -classpath ${classes_dir}:${crawler_jar} ${tests_pkg}.TestDriver ${out_dir}/crawl_data" />
+        </exec>
+        <!--
+        <java classname="${tests_pkg}.Main" classpath="${classes_dir}"  output="output.txt" />
+        -->
+    </target>
+
+    <target name="run-authbind">
         <mkdir dir="${out_dir}/crawl_data" />
         <exec executable="authbind" dir="${classes_dir}" >
             <arg line="java -classpath ${classes_dir}:${crawler_jar} ${tests_pkg}.TestDriver ${out_dir}/crawl_data" />

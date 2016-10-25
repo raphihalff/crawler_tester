@@ -16,13 +16,15 @@
 package edu.columbia.cs.tests;
 
 import edu.columbia.cs.dns_server.*;
+import java.net.InetAddress;
 
 public class TestCase extends Thread{
     /* The depth we want to crawl to (inclusive) */
     private final int DEPTH = 2;
     /* Number of unreachable levels, beyond our crawling depth; keep at one for now */
     private final int XTRA_DEPTH = 1;
-    /* Server URLs to be given to crawler as seed urls and to be given to DNS */
+    /* Server URLs to be given to crawler as seed urls and to be given to DNS;
+     * MUST be same number of seed urls as seed ips */
     private final String[] SEED_URL = {"www.example.com", "www.ids.org", "www.av-hacks.net"};
     /* The last byte of the corresponding local IPs (i.e. 127.0.0.last_byte) */
     private final byte[] SEED_IP = {(byte)0b0001, (byte)0b0010, (byte)0b0011};
@@ -33,12 +35,19 @@ public class TestCase extends Thread{
         "/read/this/page@",
         "/go/here@.html"};
     private final String ROBOTS = "User-agent: *\nDisallow: \n";
+    
     private TestServer[] servers; 
     
+    private Monitor monitor;
+
     public TestCase() {
         
         /* Set up and run DNS server */
-        runDNS();
+        /*
+         * Don't call this function since we used modified crawler that allows for custom dns resolver--
+         * which is established in the TestDriver and CrawlerStarter.
+         * runDNS();
+         */
         
         /* Establish the servers */
         servers = new TestServer[SEED_URL.length];
@@ -120,6 +129,8 @@ public class TestCase extends Thread{
     }
 
     private void setupServers() {
+        /* Create monitor */
+        monitor = new Monitor(DEPTH, DEFAULT_SUBDOMAINS.length);
         /* Generate subdomain nodes for each server */
         for (int i = 0; i < SEED_URL.length; i++) {
             HTMLServerNode[] nodes = generateHTMLNodes(SEED_URL[i]);
@@ -128,7 +139,13 @@ public class TestCase extends Thread{
                 starting_nodes[j] = nodes[j];
             } 
             servers[i] = new TestServer(SEED_URL[i], SEED_IP[i], nodes, starting_nodes, ROBOTS);
+            /* Add starters to monitor */
+            monitor.addStarters(starting_nodes);
+            /* and monitor to servers */
+            servers[i].setMonitor(monitor);
         }
+        /* add servers to monitor */
+        monitor.setServers(servers);
     }
 
     private void startServers() {
@@ -164,6 +181,20 @@ public class TestCase extends Thread{
             }
         });
         dns_server.start();
+    }
+
+    public InetAddress[] getSeedIPs() {
+        InetAddress[] ips = new InetAddress[SEED_IP.length];
+        for (int i = 0; i < SEED_IP.length; i++) {
+            byte[] addr = new byte[]{127, 0, 0, SEED_IP[i]};
+            try {
+                ips[i] = InetAddress.getByAddress(addr);
+            } catch (java.net.UnknownHostException uhe) {
+                uhe.printStackTrace();
+                System.exit(1);
+            }
+        }
+        return ips;
     }
 
     public String[] getSeedURLs() {

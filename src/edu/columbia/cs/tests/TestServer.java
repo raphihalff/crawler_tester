@@ -63,7 +63,12 @@ public class TestServer implements HttpHandler
 	private boolean visited_robots;
 
 	/** the port used for all test servers (their IP addresses will vary) */
-	private static final int WEB_PORT = 8080;
+	private static final int WEB_PORT = 80;
+
+        /** the monitor class that enforces crawling rules (depth, prohibited nodes, etc.) */
+        private Monitor monitor;
+        /** to assert DFS or BFS (aka checkOrder() or Monitor) */
+        private boolean bfs = false;
 
 	/**
 	 * Generate a loopback address on the common port.
@@ -166,7 +171,7 @@ public class TestServer implements HttpHandler
 				if (short_id != null) {
 					node.handle(exchange);
 					return;
-				}
+                                }
 			}
 
 			TestServer.this.handle(exchange);
@@ -241,6 +246,11 @@ public class TestServer implements HttpHandler
 		visited_robots = false;
 	}
 
+        public void setMonitor(Monitor monitor) {
+            this.monitor = monitor;
+            bfs = true;
+        }
+        
 	/** the name of the HTTP header describing the data content type */
 	private static final String CONTENT_TYPE_KEY = "Content-Type";
 
@@ -290,8 +300,22 @@ public class TestServer implements HttpHandler
 	public void handle(HttpExchange exchange) throws IOException
 	{
 		boolean correct;
+                boolean wants_index;
 
-		correct = !visited_robots &&
+                /* SEND THE STARTERS TO MONITOR */
+                wants_index = exchange.getRequestURI().getPath().equals("/");
+
+                if (wants_index) {
+                    String[] child_urls = new String[starters.size()];
+                    int i = 0;
+                    for (TestServerNode node : starters.values()) {
+                        child_urls[i++] = node.id;
+                    }
+                    sendContents(exchange, HttpURLConnection.HTTP_OK,
+                           HTMLServerNode.CONTENT_TYPE_HTML, HTMLServerNode.generateContent(child_urls).getBytes());
+                } 
+		
+                correct = !wants_index && !visited_robots &&
 			  ROBOTS_PATH.equals(exchange.getRequestURI()
 						     .getPath());
 		if (correct) {
@@ -300,6 +324,7 @@ public class TestServer implements HttpHandler
 				     ROBOTS_TYPE, robots_bytes);
 		}
 
+                
 		logVisit(exchange, !correct);
 	}
 
@@ -411,6 +436,16 @@ public class TestServer implements HttpHandler
 	public boolean checkOrder(TestServerNode node, HttpExchange exchange)
 	throws IOException
 	{
+             
+                if (bfs) {
+                    if(!monitor.verify(node)) {
+                        logVisit(exchange, true);
+                        return false;
+                    }
+                    return true;
+                }
+
+
 		while (visit_stack.size() > 0 &&
 		       !visit_stack.peek().checkChild(node)) {
 			visit_stack.pop();

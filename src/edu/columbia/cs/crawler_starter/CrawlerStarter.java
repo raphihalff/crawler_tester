@@ -25,12 +25,19 @@ import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 
+import org.apache.http.conn.DnsResolver; 
+
 /**
  * Adapted from Yasser Ganjisaffar
  * This starts a single-thread crawler at command line specified depth with and URL seeds.
  */
 public class CrawlerStarter {
     private static final Logger logger = LoggerFactory.getLogger(CrawlerStarter.class);
+    private static DnsResolver dns;
+
+    public CrawlerStarter(DnsResolver dns) {
+       this.dns = dns;
+    }
 
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {
@@ -48,9 +55,11 @@ public class CrawlerStarter {
 
     /*
      * Have the crawler use our DNS server running locally
+     * Note: this is ignored--the crawler doesn't use sun dns resolvers; not needed.
+     *
+     * System.setProperty("sun.net.spi.nameservice.nameservers", "127.0.0.1");
+     * System.setProperty("sun.net.spi.nameservice.provider.1", "dns,sun");
      */
-        System.setProperty("sun.net.spi.nameservice.nameservers", "127.0.0.1");
-        System.setProperty("sun.net.spi.nameservice.provider.1", "dns,sun");
     
     /*
      * crawlStorageFolder is a folder where intermediate crawl data is
@@ -113,7 +122,8 @@ public class CrawlerStarter {
     /*
      * Instantiate the controller for this crawl.
      */
-        PageFetcher pageFetcher = new PageFetcher(config);
+        /* Use the constructor with dns resolver parameter */
+        PageFetcher pageFetcher = new PageFetcher(config, dns);
         RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
         RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
         CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
