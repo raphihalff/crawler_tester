@@ -12,6 +12,12 @@ public class Monitor {
     protected final int DEPTH;
     /* The current depth of the crawler */
     private static int crawler_depth;
+    /* The number of expected nodes */
+    private static int nodes_this_depth;
+    /* The number of nodes already seen and on queue */
+    private static int on_queue;
+    /* counter to keep track of nodes */
+    private static int nodes_seen;
     /* Number of children per parent, for our tree structrue */
     protected final int CPP; 
     /* The starting nodes record keeper */
@@ -46,48 +52,70 @@ public class Monitor {
      * @param starter_nodes     the starting nodes for this server
      */
     public void addStarters(TestServerNode[] starter_nodes) {
-        for (int i = starter_nodes.length - 1; i >= 0; i--) {
-           starter_stack.push(starter_nodes[i]);
-        } 
-        //for (TestServerNode node : starter_nodes) {
-        //    starter_stack.push(node);
-        //}        
+        for (TestServerNode node : starter_nodes) {
+            starter_stack.addLast(node);
+        }        
+        nodes_this_depth = starter_stack.size() * CPP;
     }
 
     public boolean verify(TestServerNode new_node) {
-        if (crawler_depth == 1) {
-            System.out.println("BEFORE-starter:");
-            for (int i = 0; i < starter_stack.size(); i++) {
-                System.out.println(starter_stack.get(i).id);
-            }
+        /* ensures depth 1 is crawled before depth 2, but in no particular order */
+        if (crawler_depth == 1) { 
+            
             if (starter_stack.size() == 0) {
                 crawler_depth++;
-            } else if (starter_stack.peek().checkChild(new_node)) {
-                visit_stack.push(starter_stack.pop());
-                return true; 
+                nodes_this_depth *= CPP;
+                on_queue = visit_stack.size() - 1;
+                nodes_seen = 0;
             } else {
+                int time_out = 0;
+                boolean correct = false;
+                while (time_out < starter_stack.size() && 
+                        !(correct = starter_stack.peekFirst().id.equals(new_node.id))) {
+                     starter_stack.addLast(starter_stack.removeFirst());
+                     time_out++;
+                }
+
+                if (correct) {
+                    visit_stack.addLast(starter_stack.removeFirst());
+                    System.out.println("TRUE (DEPTH 1)");
+                    return true;
+                }
+
+                System.out.println("FALSE 1");
+                System.out.println("onstack: " + starter_stack.peekFirst().id + ", newnode: " + new_node.id);
                 return false;
             }
         }
         
-        System.out.println("BEFORE:");
-        for (int i = 0; i < visit_stack.size(); i++) {
-            System.out.println(visit_stack.get(i).id);
+        if (nodes_seen == nodes_this_depth) {
+            for (int i = 0; i <= on_queue; i++) {
+               visit_stack.removeFirst();
+            }
+            on_queue = nodes_seen;
+            nodes_seen = 0;
+            nodes_this_depth *= CPP;
+            crawler_depth++;
         }
         
-        while (visit_stack.size() > 0 && !visit_stack.peek().checkChild(new_node)){
-            visit_stack.pop();
-        }
-        System.out.println("AFTER:");
+        System.out.println("THE STACK:");
         for (int i = 0; i < visit_stack.size(); i++) {
             System.out.println(visit_stack.get(i).id);
         }
 
-        if (visit_stack.size() == 0) {
+        int exhausted = 0;
+        while (visit_stack.size() > 0 && !visit_stack.peekFirst().checkChild(new_node) && exhausted++ <= on_queue){
+            visit_stack.add(on_queue, visit_stack.removeFirst());
+        }
+
+        if (visit_stack.size() == 0 || crawler_depth > DEPTH) {
+            System.out.println("FALSE 2");
             return false;
         }
 
-        visit_stack.push(new_node);
+        visit_stack.addLast(new_node);
+        nodes_seen++;
+        System.out.println("TRUE");
         return true;
     }
 

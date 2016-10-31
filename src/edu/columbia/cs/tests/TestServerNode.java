@@ -186,6 +186,9 @@ public class TestServerNode
 		       children.containsKey(child.id);
 	}
 
+        public String getServerName() {
+            return server_name;
+        }       
 	/**
 	 * Handle a request whose path,
 	 * request and fragment is handled by this node.

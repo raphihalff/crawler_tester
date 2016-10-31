@@ -23,11 +23,14 @@ public class TestCase extends Thread{
     private final int DEPTH = 2;
     /* Number of unreachable levels, beyond our crawling depth; keep at one for now */
     private final int XTRA_DEPTH = 1;
+    /* @TODO LETS HAVE THESE SERVER ATTRIBUTES AS AN OBJECT */
     /* Server URLs to be given to crawler as seed urls and to be given to DNS;
      * MUST be same number of seed urls as seed ips */
     private final String[] SEED_URL = {"www.example.com", "www.ids.org", "www.av-hacks.net"};
     /* The last byte of the corresponding local IPs (i.e. 127.0.0.last_byte) */
     private final byte[] SEED_IP = {(byte)0b0001, (byte)0b0010, (byte)0b0011};
+    /* the port for each server, -1 for default port of 80 */
+    private final int[] PORTS = {-1, -1, -1};
     /* The subdomains to be layered as children under seed urls, the '@' will be replaced by identifiers */
     private final String[] DEFAULT_SUBDOMAINS = {
         "/index@.html", 
@@ -137,8 +140,17 @@ public class TestCase extends Thread{
             HTMLServerNode[] starting_nodes = new HTMLServerNode[DEFAULT_SUBDOMAINS.length];
             for (int j = 0; j < DEFAULT_SUBDOMAINS.length; j++){
                 starting_nodes[j] = nodes[j];
-            } 
-            servers[i] = new TestServer(SEED_URL[i], SEED_IP[i], nodes, starting_nodes, ROBOTS);
+            }
+            
+            /* If a specific port was specified */ 
+            if (PORTS[i] == -1) { // use default port = 80
+                servers[i] = new TestServer(SEED_URL[i], SEED_IP[i], nodes, starting_nodes, ROBOTS);
+            } else { // use specified port and indicate it in seed url
+                servers[i] = new TestServer(SEED_URL[i] + ":" + PORTS[i], SEED_IP[i], nodes, starting_nodes, ROBOTS);
+                /* set port */
+                servers[i].setPort(PORTS[i]);
+            }
+
             /* Add starters to monitor */
             monitor.addStarters(starting_nodes);
             /* and monitor to servers */

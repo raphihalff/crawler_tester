@@ -63,7 +63,7 @@ public class TestServer implements HttpHandler
 	private boolean visited_robots;
 
 	/** the port used for all test servers (their IP addresses will vary) */
-	private static final int WEB_PORT = 80;
+	private static int WEB_PORT = 80;
 
         /** the monitor class that enforces crawling rules (depth, prohibited nodes, etc.) */
         private Monitor monitor;
@@ -246,10 +246,23 @@ public class TestServer implements HttpHandler
 		visited_robots = false;
 	}
 
-        public void setMonitor(Monitor monitor) {
+        /**
+         * Sets the monitor for bfs order and depth enforcement
+         * @param monitor       the monitor instance
+         */
+        protected void setMonitor(Monitor monitor) {
             this.monitor = monitor;
             bfs = true;
         }
+
+        /**
+         * Sets the port, default is 80
+         * @param port  the port number
+         */
+        protected void setPort(int port) {
+             WEB_PORT = port;
+        }        
+
         
 	/** the name of the HTTP header describing the data content type */
 	private static final String CONTENT_TYPE_KEY = "Content-Type";
