@@ -57,7 +57,7 @@ public class HTMLServerNode extends TestServerNode
                 }
 		return getServerName().equals(child.getServerName()) && is_listed;
 	}
-	
+
 	/**
 	 * @param server_name	the name of the server containing this node,
 	 *			as required by the super class

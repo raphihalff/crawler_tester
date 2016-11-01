@@ -17,6 +17,7 @@ package edu.columbia.cs.tests;
 
 import edu.columbia.cs.dns_server.*;
 import java.net.InetAddress;
+import java.util.ArrayList;
 
 public class TestCase extends Thread{
     /* The depth we want to crawl to (inclusive) */
@@ -40,7 +41,9 @@ public class TestCase extends Thread{
     private final String ROBOTS = "User-agent: *\nDisallow: \n";
     
     private TestServer[] servers; 
-    
+   
+    private ArrayList<String> all_urls; 
+
     private Monitor monitor;
 
     public TestCase() {
@@ -54,6 +57,7 @@ public class TestCase extends Thread{
         
         /* Establish the servers */
         servers = new TestServer[SEED_URL.length];
+        all_urls = new ArrayList<String>();
         setupServers();
         startServers();
 
@@ -126,8 +130,13 @@ public class TestCase extends Thread{
 
         for (int i = 0; i < cpp; i++) {
             children_paths[i] = new String(DEFAULT_SUBDOMAINS[i]).replaceFirst("@", replacement_tkn); 
+            /* add these to list of all urls */
+            if (cur_depth < max_depth && !all_urls.contains(server + children_paths[i])) {
+                all_urls.add(server + children_paths[i]);
+            }
         }
-        
+       
+       
         return children_paths;
     }
 
@@ -151,6 +160,11 @@ public class TestCase extends Thread{
                 servers[i].setPort(PORTS[i]);
             }
 
+            /* add servename to url list */
+            if (!all_urls.contains(SEED_URL[i] + "/")) {
+                all_urls.add(SEED_URL[i] + "/");
+            }
+            
             /* Add starters to monitor */
             monitor.addStarters(starting_nodes);
             /* and monitor to servers */
@@ -158,6 +172,9 @@ public class TestCase extends Thread{
         }
         /* add servers to monitor */
         monitor.setServers(servers);
+        /* add list of urls to monitor */
+        System.out.println(all_urls.size());
+        monitor.setURLs(all_urls);
     }
 
     private void startServers() {
@@ -168,10 +185,17 @@ public class TestCase extends Thread{
         }
     } 
 
-    public void stopServers(){
+    protected void stopServers() {
         for (TestServer server : servers) {
             server.stop();
         }
+    }
+
+    protected void sendVisits() {
+        for (TestServer server : servers) {
+            monitor.checkVisits(server.getVisits());
+        }
+        monitor.checkShouldHaves();
     }
 
     private void runDNS() {

@@ -1,6 +1,7 @@
 package edu.columbia.cs.tests;
 
 import java.util.LinkedList;
+import java.util.ArrayList;
 /**
  * -Keep track of crawler's current depth and enforce it
  * -Enforce BFS crawling order
@@ -26,6 +27,8 @@ public class Monitor {
     protected LinkedList<TestServerNode> visit_stack; 
     /* the servers for post check*/
     private TestServer[] servers;
+    /* all the urls that should be visited */
+    private static ArrayList<String> urls_to_visit;
 
     /**
      * @param depth             the max depth that should be crawled (inclusive)
@@ -46,6 +49,13 @@ public class Monitor {
      */
     public void setServers(TestServer[] servers) {
         this.servers = servers;
+    }
+
+    /**
+     * @param urls      the list of all urls that should be visited
+     */
+    public void setURLs(ArrayList<String> urls) {
+        urls_to_visit = urls;
     }
     
     /**
@@ -70,6 +80,7 @@ public class Monitor {
             } else {
                 int time_out = 0;
                 boolean correct = false;
+                
                 while (time_out < starter_stack.size() && 
                         !(correct = starter_stack.peekFirst().id.equals(new_node.id))) {
                      starter_stack.addLast(starter_stack.removeFirst());
@@ -78,12 +89,10 @@ public class Monitor {
 
                 if (correct) {
                     visit_stack.addLast(starter_stack.removeFirst());
-                    System.out.println("TRUE (DEPTH 1)");
                     return true;
                 }
 
-                System.out.println("FALSE 1");
-                System.out.println("onstack: " + starter_stack.peekFirst().id + ", newnode: " + new_node.id);
+                // System.out.println("onstack: " + starter_stack.peekFirst().id + ", newnode: " + new_node.id);
                 return false;
             }
         }
@@ -92,16 +101,17 @@ public class Monitor {
             for (int i = 0; i <= on_queue; i++) {
                visit_stack.removeFirst();
             }
+
             on_queue = nodes_seen;
             nodes_seen = 0;
             nodes_this_depth *= CPP;
             crawler_depth++;
         }
         
-        System.out.println("THE STACK:");
+        /*System.out.println("THE STACK:");
         for (int i = 0; i < visit_stack.size(); i++) {
             System.out.println(visit_stack.get(i).id);
-        }
+        }*/
 
         int exhausted = 0;
         while (visit_stack.size() > 0 && !visit_stack.peekFirst().checkChild(new_node) && exhausted++ <= on_queue){
@@ -109,14 +119,42 @@ public class Monitor {
         }
 
         if (visit_stack.size() == 0 || crawler_depth > DEPTH) {
-            System.out.println("FALSE 2");
             return false;
         }
 
         visit_stack.addLast(new_node);
         nodes_seen++;
-        System.out.println("TRUE");
+        
         return true;
     }
 
+    protected boolean checkVisits(TestVisitRecord[] visits) { 
+        boolean correct = true;
+        for (TestVisitRecord visit : visits) {
+            int index;
+            if ((index = urls_to_visit.indexOf(visit.getURL())) == -1) {
+                System.out.println("Error: Should not have visited: " + visit.getURL());
+                correct = false;
+            } else if (visit.hasError()) {
+                System.out.println("Error: Problem with the visit to: " + visit.getURL());
+                correct = false;
+            } else {
+                urls_to_visit.remove(index);
+            }
+        }
+        return correct;
+    }
+
+    protected boolean checkShouldHaves() {
+
+        if (urls_to_visit.isEmpty()) {
+            return true;
+        } else {
+            for (Object url : urls_to_visit.toArray()) {
+                System.out.println("Error: Should have visited: " + url);
+            }
+            return false;
+        }
+    }
+            
 }

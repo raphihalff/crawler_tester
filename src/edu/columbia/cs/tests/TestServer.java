@@ -498,6 +498,7 @@ public class TestServer implements HttpHandler
 			found_mistake = true;
 		}
 		visits.add(new TestVisitRecord(exchange.getRequestURI(),
+                                               exchange.getRequestHeaders().getFirst("Host"),
 					       have_error));
 	}
 

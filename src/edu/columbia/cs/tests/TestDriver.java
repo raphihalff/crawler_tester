@@ -62,6 +62,7 @@ public class TestDriver {
         /* stop the servers */
         System.out.print("\nstopping servers\n");
         test.stopServers();
+        test.sendVisits();
 
     }
 
