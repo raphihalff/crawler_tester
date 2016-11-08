@@ -73,7 +73,6 @@ public class RedirectServerNode extends TestServerNode
 		Headers headers = exchange.getResponseHeaders();
                 
                 try {
-                System.out.println("DOES THIS OCCUR2");
                 
                 if (is_redirect) {
                     headers.add(LOCATION_KEY, location);

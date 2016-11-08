@@ -191,14 +191,11 @@ public class TestCase extends Thread{
             }
             
             /* Add starters to monitor */
-            monitor.addStarters(starting_nodes);
+            monitor.addStarters(servers);
             /* and monitor to servers */
             server_objs[i].setMonitor(monitor);
         }
-        /* add servers to monitor */
-        monitor.setServers(server_objs);
         /* add list of urls to monitor */
-        System.out.println(all_urls.size());
         monitor.setURLs(all_urls);
     }
 
@@ -218,7 +215,7 @@ public class TestCase extends Thread{
 
     protected void sendVisits() {
         for (TestServer server : server_objs) {
-            monitor.checkVisits(server.getVisits());
+            monitor.checkVisits();
         }
         monitor.checkShouldHaves();
     }
@@ -307,13 +304,13 @@ public class TestCase extends Thread{
     /**
      * Represents a server entity
      */
-    private class Server {
+    protected class Server {
         
-        private String name;
-        private byte ip;
-        private int port;
-        private boolean should_visit;
-        private boolean is_seed;
+        protected String name;
+        protected byte ip;
+        protected int port;
+        protected boolean should_visit;
+        protected boolean is_seed;
 
         /** 
          * @param name          the name of the server 
@@ -335,11 +332,11 @@ public class TestCase extends Thread{
     /**
      * Represents a sub_domain node
      */
-    private class Node {
+    protected class Node {
 
-        private String name;
-        private int is_redirect;
-        private String location;
+        protected String name;
+        protected int is_redirect;
+        protected String location;
 
         /**
          * @param name          the name of the subdomain

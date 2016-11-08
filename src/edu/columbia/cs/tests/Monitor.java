@@ -21,14 +21,19 @@ public class Monitor {
     private static int nodes_seen;
     /* Number of children per parent, for our tree structrue */
     protected final int CPP; 
-    /* The starting nodes record keeper */
-    protected LinkedList<TestServerNode> starter_stack; 
-    /* The visit recored keeper */
-    protected LinkedList<TestServerNode> visit_stack; 
-    /* the servers for post check*/
-    private TestServer[] servers;
+    
+    /* The nodes of current depth */
+    protected LinkedList<TestServerNode> curr_nodes; 
+    /* The nodes belonging to next depth */
+    protected LinkedList<TestServerNode> next_nodes; 
+    /* the servers */
+    protected TestCase.Server[] servers;
+    /* the nodes that should not be reached */
+    protected ArrayList<String> prohib_nodes;
     /* all the urls that should be visited */
-    private static ArrayList<String> urls_to_visit;
+    private static ArrayList<String> to_visit_nodes;
+    /* visit log */
+    private static ArrayList<TestVisitRecord> log;
 
     /**
      * @param depth             the max depth that should be crawled (inclusive)
@@ -37,124 +42,89 @@ public class Monitor {
     public Monitor(int depth, int cpp){
         DEPTH = depth;
         CPP = cpp;
-        this.servers = servers;
 
         crawler_depth = 1;
-        visit_stack = new LinkedList<TestServerNode>();
-        starter_stack = new LinkedList<TestServerNode>();
-    }
-
-    /**
-     * @param servers           the servers running for this test
-     */
-    public void setServers(TestServer[] servers) {
-        this.servers = servers;
+        next_nodes = new LinkedList<TestServerNode>();
+        curr_nodes = new LinkedList<TestServerNode>();
+        prohib_nodes = new ArrayList<String>();
+        to_visit_nodes = new ArrayList<String>();
+        log = new ArrayList<TestVisitRecord>();
     }
 
     /**
      * @param urls      the list of all urls that should be visited
      */
     public void setURLs(ArrayList<String> urls) {
-        urls_to_visit = urls;
+        for (String url : urls) {
+            for (TestCase.Server server : servers) {
+                if (url.indexOf(server.name) != -1 && 
+                        server.should_visit && 
+                        url.indexOf("d" + (DEPTH+1) + "c") == -1) {
+                    
+                    to_visit_nodes.add(url);
+                    break;
+                } else if ((url.indexOf(server.name) != -1 && !server.should_visit) 
+                        || url.indexOf("d" + (DEPTH+1) + "c") == -1) {
+                    
+                    prohib_nodes.add(url);
+                    break;
+                }
+            }  
+        }
     }
     
     /**
      * @param starter_nodes     the starting nodes for this server
      */
-    public void addStarters(TestServerNode[] starter_nodes) {
-        for (TestServerNode node : starter_nodes) {
-            starter_stack.addLast(node);
+    public void addStarters(TestCase.Server[] servers) {
+        this.servers = servers;   
+        int seed_cnt = 0;     
+        for (TestCase.Server server : this.servers) {
+            if (server.is_seed && server.should_visit) {
+                to_visit_nodes.add(server.name);
+                seed_cnt++;
+            } else if (server.should_visit) {
+                to_visit_nodes.add(server.name);
+            } else {
+                System.out.println("Prohibited server: "  + server.name);
+                prohib_nodes.add(server.name);
+            }
         }        
-        nodes_this_depth = starter_stack.size() * CPP;
+        nodes_this_depth = seed_cnt * CPP;
     }
 
     public boolean verify(TestServerNode new_node) {
-        /* ensures depth 1 is crawled before depth 2, but in no particular order */
-        if (crawler_depth == 1) { 
-            
-            if (starter_stack.size() == 0) {
-                crawler_depth++;
-                nodes_this_depth *= CPP;
-                on_queue = visit_stack.size() - 1;
-                nodes_seen = 0;
-            } else {
-                int time_out = 0;
-                boolean correct = false;
-                
-                while (time_out < starter_stack.size() && 
-                        !(correct = starter_stack.peekFirst().id.equals(new_node.id))) {
-                     starter_stack.addLast(starter_stack.removeFirst());
-                     time_out++;
-                }
+        String url = new_node.getServerName() + new_node.id;
+        if (to_visit_nodes.remove(url)) {
+            return true;
+        } else if (prohib_nodes.indexOf(url) != -1) {
+           log.add(new TestVisitRecord(null, new_node.getServerName() + new_node.id, true));
+           return false;
+        } 
+       
+        log.add(new TestVisitRecord(null, new_node.getServerName() + new_node.id, false));
 
-                if (correct) {
-                    visit_stack.addLast(starter_stack.removeFirst());
-                    return true;
-                }
-
-                // System.out.println("onstack: " + starter_stack.peekFirst().id + ", newnode: " + new_node.id);
-                return false;
-            }
-        }
-        
-        if (nodes_seen == nodes_this_depth) {
-            for (int i = 0; i <= on_queue; i++) {
-               visit_stack.removeFirst();
-            }
-
-            on_queue = nodes_seen;
-            nodes_seen = 0;
-            nodes_this_depth *= CPP;
-            crawler_depth++;
-        }
-        
-        /*System.out.println("THE STACK:");
-        for (int i = 0; i < visit_stack.size(); i++) {
-            System.out.println(visit_stack.get(i).id);
-        }*/
-
-        int exhausted = 0;
-        while (visit_stack.size() > 0 && !visit_stack.peekFirst().checkChild(new_node) && exhausted++ <= on_queue){
-            visit_stack.add(on_queue, visit_stack.removeFirst());
-        }
-
-        if (visit_stack.size() == 0 || crawler_depth > DEPTH) {
-            return false;
-        }
-
-        visit_stack.addLast(new_node);
-        nodes_seen++;
-        
         return true;
     }
 
-    protected boolean checkVisits(TestVisitRecord[] visits) { 
+    protected boolean checkVisits() { 
         boolean correct = true;
-        for (TestVisitRecord visit : visits) {
-            int index;
-            if ((index = urls_to_visit.indexOf(visit.getURL())) == -1) {
-                System.out.println("Error: Should not have visited: " + visit.getURL());
-                correct = false;
-            } else if (visit.hasError()) {
-                System.out.println("Error: Problem with the visit to: " + visit.getURL());
+        for (TestVisitRecord visit : log) {
+            if (visit.hasError()) {
+                System.out.println("Error--Should NOT have been visited: " + visit.getURL());
                 correct = false;
             } else {
-                urls_to_visit.remove(index);
-            }
+                System.out.println("Error--Ambiguous, this WAS visited: " + visit.getURL());
+                correct = false;
+            } 
         }
         return correct;
     }
 
     protected boolean checkShouldHaves() {
-
-        if (urls_to_visit.isEmpty()) {
-            return true;
-        } else {
-            for (Object url : urls_to_visit.toArray()) {
-                System.out.println("Error: Should have visited: " + url);
-            }
-            return false;
+        for (String node : to_visit_nodes) { 
+            System.out.println("Error--Should have been visited: " + node);
         }
-    }
-            
+        return to_visit_nodes.isEmpty();
+    } 
 }

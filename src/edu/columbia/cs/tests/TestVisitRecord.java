@@ -42,7 +42,7 @@ public class TestVisitRecord
 	}
 
         public String getURL() {
-            return host + visitee;
+            return (visitee == null) ? host : host + visitee;
         }
 
         public boolean hasError() {
