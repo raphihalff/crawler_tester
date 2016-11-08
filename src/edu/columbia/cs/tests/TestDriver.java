@@ -30,8 +30,9 @@ public class TestDriver {
         TestCase test = new TestCase();
         
         depth = test.getDepth();
-        seed_urls = test.getSeedURLs();
-        seed_ips = test.getSeedIPs();
+        /* get urls for dns resolving */
+        seed_urls = test.getURLs(false);
+        seed_ips = test.getIPs(false);
 
         /* Setup the InMemoryDNSResolver object */
         InMemoryDnsResolver dns = new InMemoryDnsResolver();
@@ -40,6 +41,10 @@ public class TestDriver {
         }
 
         System.out.print("DONE\n");
+        
+        /* get seed urls for crawler */
+        seed_urls = test.getURLs(true);
+        seed_ips = test.getIPs(true);
 
         /* Compile args for crawler; 
          * NOTE: add protocol! */ 

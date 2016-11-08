@@ -79,6 +79,7 @@
             classpath="${classes_path}/${dns_server}:${classes_path}/${crawler_starter}:${crawler_jar}" >
             <include name="TestCase.java" />
             <include name="HTMLServerNode.java" />
+            <include name="RedirectServerNode.java" />
             <include name="TestDriver.java" />
             <include name="TestServer.java" />
             <include name="TestServerNode.java" />

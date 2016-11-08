@@ -266,6 +266,8 @@ public class TestServer implements HttpHandler
         
 	/** the name of the HTTP header describing the data content type */
 	private static final String CONTENT_TYPE_KEY = "Content-Type";
+	/** the name of the HTTP header describing the redirect location */
+        private static final String LOCATION_KEY = "Location";
 
 	/**
 	 * Send data contents in the response.
@@ -287,7 +289,7 @@ public class TestServer implements HttpHandler
 		headers = exchange.getResponseHeaders();
 
 		if (have_contents) {
-			headers.add(CONTENT_TYPE_KEY, content_type);
+                    headers.add(CONTENT_TYPE_KEY, content_type);
 		}
 		exchange.sendResponseHeaders(status, length);
 

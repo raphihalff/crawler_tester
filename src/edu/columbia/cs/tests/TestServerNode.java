@@ -208,8 +208,18 @@ public class TestServerNode
 		}
 
 		/** success: send contents and record the visit as correct */
-		TestServer.sendContents(exchange, status, content_type,
+		sendContents(exchange, status, content_type,
 					contents);
 		host.logVisit(exchange, false);
 	}
-}
+
+    protected void sendContents(HttpExchange exchange, int status, String content_type, byte[] contents) {
+            try {    
+                System.out.println("DOES THIS OCCUR1");
+                TestServer.sendContents(exchange, status, content_type,
+					contents);
+            } catch (IOException io) {
+                io.printStackTrace();
+            }
+        }
+}       
