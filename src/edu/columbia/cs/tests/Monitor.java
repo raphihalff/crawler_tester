@@ -56,19 +56,20 @@ public class Monitor {
      */
     public void setURLs(ArrayList<String> urls) {
         for (String url : urls) {
+            boolean added = false;
             for (TestCase.Server server : servers) {
                 if (url.indexOf(server.name) != -1 && 
                         server.should_visit && 
                         url.indexOf("d" + (DEPTH+1) + "c") == -1) {
-                    
+    
                     to_visit_nodes.add(url);
-                    break;
-                } else if ((url.indexOf(server.name) != -1 && !server.should_visit) 
-                        || url.indexOf("d" + (DEPTH+1) + "c") == -1) {
-                    
-                    prohib_nodes.add(url);
+                    added = true;
                     break;
                 }
+            }
+
+            if (!added) {
+                    prohib_nodes.add(url);
             }  
         }
     }
@@ -86,7 +87,6 @@ public class Monitor {
             } else if (server.should_visit) {
                 to_visit_nodes.add(server.name);
             } else {
-                System.out.println("Prohibited server: "  + server.name);
                 prohib_nodes.add(server.name);
             }
         }        

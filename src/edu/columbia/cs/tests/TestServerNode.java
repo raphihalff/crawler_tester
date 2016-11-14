@@ -215,7 +215,6 @@ public class TestServerNode
 
     protected void sendContents(HttpExchange exchange, int status, String content_type, byte[] contents) {
             try {    
-                System.out.println("DOES THIS OCCUR1");
                 TestServer.sendContents(exchange, status, content_type,
 					contents);
             } catch (IOException io) {

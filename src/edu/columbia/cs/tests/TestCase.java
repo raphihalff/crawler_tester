@@ -155,7 +155,7 @@ public class TestCase extends Thread{
         for (int i = 0; i < cpp; i++) {
             children_paths[i] = new String(subdomains[i].name).replaceFirst("@", replacement_tkn); 
             /* add these to list of all urls */
-            if (cur_depth < max_depth && !all_urls.contains(server + children_paths[i])) {
+            if (!all_urls.contains(server + children_paths[i])) {
                 all_urls.add(server + children_paths[i]);
             }
         }
@@ -190,11 +190,11 @@ public class TestCase extends Thread{
                 all_urls.add(servers[i].name + "/");
             }
             
-            /* Add starters to monitor */
-            monitor.addStarters(servers);
             /* and monitor to servers */
             server_objs[i].setMonitor(monitor);
         }
+        /* Add starters to monitor */
+        monitor.addStarters(servers);
         /* add list of urls to monitor */
         monitor.setURLs(all_urls);
     }
