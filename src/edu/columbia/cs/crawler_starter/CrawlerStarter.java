@@ -25,8 +25,14 @@ import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 
+import edu.uci.ics.crawler4j.url.URLCanonicalizer;
+import edu.uci.ics.crawler4j.url.WebURL;
+
 import org.apache.http.conn.DnsResolver; 
 
+import edu.columbia.cs.domain_crawler.DomainCrawler;
+import edu.columbia.cs.domain_crawler.Dominator;
+import edu.columbia.cs.domain_crawler.ServerDomain;
 /**
  * Adapted from Yasser Ganjisaffar
  * This starts a single-thread crawler at command line specified depth with and URL seeds.
@@ -34,6 +40,8 @@ import org.apache.http.conn.DnsResolver;
 public class CrawlerStarter {
     private static final Logger logger = LoggerFactory.getLogger(CrawlerStarter.class);
     private static DnsResolver dns;
+
+    private static final boolean USE_DOMAIN_CRWLR = true;
 
     public CrawlerStarter(DnsResolver dns) {
        this.dns = dns;
@@ -126,7 +134,22 @@ public class CrawlerStarter {
         PageFetcher pageFetcher = new PageFetcher(config, dns);
         RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
         RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
-        CrawlController controller = new CrawlController(config, pageFetcher, robotstxtServer);
+        CrawlController controller = null;
+        if (USE_DOMAIN_CRWLR) {
+            String canonicalUrl = URLCanonicalizer.getCanonicalURL(args[2]);
+            if (canonicalUrl == null) {
+                System.err.println("Bad starting domain url");
+                System.exit(1);
+            } else {
+                WebURL webUrl = new WebURL();
+                webUrl.setURL(canonicalUrl);
+                webUrl.setDocid(1);
+                webUrl.setDepth((short) 0);
+                controller = new Dominator(config, pageFetcher, robotstxtServer, new ServerDomain(webUrl));
+            }
+        } else {
+            controller = new CrawlController(config, pageFetcher, robotstxtServer);
+        }
 
     /*
      * For each crawl, you need to add some seed urls. These are the first
@@ -149,6 +172,10 @@ public class CrawlerStarter {
      * Start the crawl. This is a blocking operation, meaning that your code
      * will reach the line after this only when crawling is finished.
      */
-        controller.start(CrawlerHandler.class, numberOfCrawlers);
+        if (USE_DOMAIN_CRWLR) {
+            controller.start(DomainCrawler.class, numberOfCrawlers);
+        } else  {
+            controller.start(CrawlerHandler.class, numberOfCrawlers);
+        }
     }
 }

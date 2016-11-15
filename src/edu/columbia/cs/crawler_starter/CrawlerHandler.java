@@ -80,7 +80,7 @@ public class CrawlerHandler extends WebCrawler {
         logger.debug("Domain: '{}'", domain);
         //logger.debug("Sub-domain: '{}'", subDomain);
         logger.debug("Path: '{}'", path);
-        //logger.debug("Parent page: {}", parentUrl);
+        logger.debug("Parent page: {}", parentUrl);
         //logger.debug("Anchor text: {}", anchor);
 
         if (page.getParseData() instanceof HtmlParseData) {
@@ -94,13 +94,15 @@ public class CrawlerHandler extends WebCrawler {
             //logger.debug("Number of outgoing links: {}", links.size());
         }
 
+        /*
         Header[] responseHeaders = page.getFetchResponseHeaders();
         if (responseHeaders != null) {
             logger.debug("Response headers:");
             for (Header header : responseHeaders) {
-                //logger.debug("\t{}: {}", header.getName(), header.getValue());
+                logger.debug("\t{}: {}", header.getName(), header.getValue());
             }
         }
+        */
 
         logger.debug("=============");
     }

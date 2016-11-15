@@ -7,11 +7,13 @@
     <property name="libs_dir" location="libs" />
     <property name="classes_dir" location="${out_dir}/classes" />
     <property name="crawler" location="crawler4j" />
+    <property name="domain_crawler" location="crawler/DomainCrawler" />
     
     <property name="crawler_exts" value="crawler_starter" />
     <property name="dns_server" value="dns_server" />
     <property name="tests" value="tests" />
     <property name="crawler_jar" location="${libs_dir}/crawler4j-4.3-SNAPSHOT-jar-with-dependencies.jar" />
+    <property name="domain_crawler_jar" location="${libs_dir}/domain_crawler.jar" />
         
     <property name="overall_path" value="edu/columbia/cs" />
     <property name="src_path" location="${src_dir}/${overall_path}" />
@@ -42,11 +44,11 @@
         <copy file="${crawler}/target/crawler4j-4.3-SNAPSHOT-jar-with-dependencies.jar" todir="${libs_dir}" />
     </target>
     
-    <target name="setup_crawler" description="compile the classes that extend the crawler" depends="init" >
+    <target name="setup_crawler" description="compile the classes that extend the crawler" depends="init, domain_crawler" >
         <mkdir dir="${classes_path}/${crawler_exts}" />
         <javac srcdir="${src_path}/${crawler_exts}" destdir="${classes_dir}"
             includeAntRuntime="false" debug="true" debugLevel="lines,source"
-            classpath="${crawler_jar}" >
+            classpath="${crawler_jar}:${domain_crawler_jar}" >
             <include name="CrawlerStarter.java" />
             <include name="CrawlerHandler.java" />
         </javac>
@@ -71,12 +73,20 @@
             <include name="tools.java" />
         </javac>
     </target>
-
+        
+    <target name="domain_crawler" description="compile the domain_crawler in submodule">
+        <!-- execute the domain crawlers ant file and copy over the jar -->
+        <exec executable="ant" dir="${domain_crawler}" >
+            <arg line="jar" />
+        </exec>
+        <copy file="${domain_crawler}/out/jar/domain_crawler.jar" todir="${libs_dir}" />
+    </target>
+        
     <target name="tests" description="compile the classes in the tests dir" depends="init, dns_server" >
         <mkdir dir="${classes_path}/${tests}" />
         <javac srcdir="${src_path}/${tests}" destdir="${classes_dir}"
             includeAntRuntime="false" debug="true" debugLevel="lines,source" 
-            classpath="${classes_path}/${dns_server}:${classes_path}/${crawler_starter}:${crawler_jar}" >
+            classpath="${classes_path}/${dns_server}:${classes_path}/${crawler_starter}:${crawler_jar}:${domain_crawler_jar}" >
             <include name="TestCase.java" />
             <include name="HTMLServerNode.java" />
             <include name="RedirectServerNode.java" />
@@ -91,7 +101,7 @@
     <target name="run">
         <mkdir dir="${out_dir}/crawl_data" />
         <exec executable="authbind" dir="${classes_dir}" >
-            <arg line="java -classpath ${classes_dir}:${crawler_jar} ${tests_pkg}.TestDriver ${out_dir}/crawl_data" />
+            <arg line="java -classpath ${classes_dir}:${crawler_jar}:${domain_crawler_jar} ${tests_pkg}.TestDriver ${out_dir}/crawl_data" />
         </exec>
         <!--
         <java classname="${tests_pkg}.Main" classpath="${classes_dir}"  output="output.txt" />

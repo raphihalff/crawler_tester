@@ -1,6 +1,7 @@
 package edu.columbia.cs.tests;
 
 import edu.columbia.cs.crawler_starter.CrawlerStarter;
+import edu.columbia.cs.domain_crawler.DomainCrawler;
 import java.net.InetAddress;
 import org.apache.http.impl.conn.InMemoryDnsResolver;
 
