@@ -155,7 +155,7 @@ public class TestCase extends Thread{
         for (int i = 0; i < cpp; i++) {
             children_paths[i] = new String(subdomains[i].name).replaceFirst("@", replacement_tkn); 
             /* add these to list of all urls */
-            if (!all_urls.contains(server + children_paths[i])) {
+            if (!all_urls.contains(server + children_paths[i]) && subdomains[family_index % cpp].is_redirect == -1) {
                 all_urls.add(server + children_paths[i]);
             }
         }

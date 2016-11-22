@@ -60,8 +60,12 @@ public class Monitor {
             for (TestCase.Server server : servers) {
                 if (url.indexOf(server.name) != -1 && 
                         server.should_visit && 
-                        url.indexOf("d" + (DEPTH+1) + "c") == -1) {
-    
+                        url.indexOf("d" + (DEPTH + 1) + "c") == -1) {
+   
+                    /* If the server is not a seed, its depth is one level deeper than indicated */ 
+                    if (!server.is_seed && url.indexOf("d" + DEPTH + "c") != -1) {
+                        break;
+                    }
                     to_visit_nodes.add(url);
                     added = true;
                     break;

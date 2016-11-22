@@ -1,0 +1,15 @@
+Current problems with the crawler that we may want to fix include:
+
+1) A redirect with a location header that does not specify protocol (i.e.
+http) will simply be appended to current url. A redirect is only truly
+followed if the protocol is specified.
+
+2) The above applies also to a regular html link (i.e. <a href=...). The
+protocol must be included if it is a link to a new domain, otherwise the url will be appended to current
+path. 
+
+3) Does not query a specific port when specified in the url (i.e.
+google.com:8080). It does not parse this correctly.
+
+
+
