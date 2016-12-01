@@ -27,7 +27,7 @@ public class Monitor {
     /* The nodes belonging to next depth */
     protected LinkedList<TestServerNode> next_nodes; 
     /* the servers */
-    protected TestCase.Server[] servers;
+    protected TestObjects.Server[] servers;
     /* the nodes that should not be reached */
     protected ArrayList<String> prohib_nodes;
     /* all the urls that should be visited */
@@ -57,7 +57,7 @@ public class Monitor {
     public void setURLs(ArrayList<String> urls) {
         for (String url : urls) {
             boolean added = false;
-            for (TestCase.Server server : servers) {
+            for (TestObjects.Server server : servers) {
                 if (url.indexOf(server.name) != -1 && 
                         server.should_visit && 
                         url.indexOf("d" + (DEPTH + 1) + "c") == -1) {
@@ -81,10 +81,10 @@ public class Monitor {
     /**
      * @param starter_nodes     the starting nodes for this server
      */
-    public void addStarters(TestCase.Server[] servers) {
+    public void addStarters(TestObjects.Server[] servers) {
         this.servers = servers;   
         int seed_cnt = 0;     
-        for (TestCase.Server server : this.servers) {
+        for (TestObjects.Server server : this.servers) {
             if (server.is_seed && server.should_visit) {
                 to_visit_nodes.add(server.name);
                 seed_cnt++;

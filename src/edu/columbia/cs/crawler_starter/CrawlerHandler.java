@@ -75,12 +75,12 @@ public class CrawlerHandler extends WebCrawler {
         String parentUrl = page.getWebURL().getParentUrl();
         String anchor = page.getWebURL().getAnchor();
 
-        logger.debug("Docid: {}", docid);
+        //logger.debug("Docid: {}", docid);
         //logger.info("URL: {}", url);
-        logger.debug("Domain: '{}'", domain);
+        //logger.debug("Domain: '{}'", domain);
         //logger.debug("Sub-domain: '{}'", subDomain);
-        logger.debug("Path: '{}'", path);
-        logger.debug("Parent page: {}", parentUrl);
+        //logger.debug("Path: '{}'", path);
+        //logger.debug("Parent page: {}", parentUrl);
         //logger.debug("Anchor text: {}", anchor);
 
         if (page.getParseData() instanceof HtmlParseData) {
@@ -104,6 +104,6 @@ public class CrawlerHandler extends WebCrawler {
         }
         */
 
-        logger.debug("=============");
+        //logger.debug("=============");
     }
 }

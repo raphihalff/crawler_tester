@@ -21,34 +21,22 @@ import java.util.ArrayList;
 
 public class TestCase extends Thread{
     /* The depth we want to crawl to (inclusive) */
-    private final int DEPTH = 2;
+    private final int DEPTH;
     /* Number of unreachable levels, beyond our crawling depth; keep at one for now */
-    private final int XTRA_DEPTH = 1;
+    private final int XTRA_DEPTH;
     /* The servers to be crawled and given to DNS;
      * specify url, ip, port, reachability, and if it is a seed */
-    private final Server[] servers = {
-        new Server("www.example.com",   (byte)0b0001, -1, true, true),  /* reachable and seed */
-        new Server("www.ids.org",       (byte)0b0010, -1, true, true),  /* reachable and seed */
-        new Server("www.good-rdr.fr",   (byte)0b0100, -1, true, false), /* reachable and not seed */
-        new Server("www.bad-rdr.fr",    (byte)0b0101, -1, false, false) /* not reachable and not seed */
-    };
+    private final TestObjects.Server[] servers;
     /* the subdomains to be automatically generated for each node;
      * they may rely on the values of the above servers 
      * the '@' in the name variable will be replaced by identifiers */
-    private final Node[] subdomains = {
-        new Node("/index@.html",        -1, null),                      /* not redirect */
-        new Node("/please_enter@",      -1, null),                      /* not redirect */ 
-        new Node("/read/this/page@",    -1, null),                      /* not redirect */
-        new Node("/go/here@.html",      -1, null),                      /* not redirect */
-        new Node("/redirect@",           0, "http://www.good-rdr.fr"),  /* is redirect */
-        new Node("/bad_link@",          1, "http://www.bad-rdr.fr")     /* is external link */
-    };
+    private final TestObjects.Node[] subdomains;
     /* number of subdomains per node, aka children per parent */
-    private final int cpp = subdomains.length;
+    private final int cpp;
     /* number of servers */
-    private final int server_cnt = servers.length;
+    private final int server_cnt;
     /* the robots contents */
-    private final String ROBOTS = "User-agent: *\nDisallow: \n";
+    private final String ROBOTS;
     
     private TestServer[] server_objs; 
    
@@ -56,7 +44,16 @@ public class TestCase extends Thread{
 
     private Monitor monitor;
 
-    public TestCase() {
+    public TestCase(TestObjects.TestObject t) {
+
+        /* Get the tests variables */
+        DEPTH = t.depth;
+        XTRA_DEPTH = t.xtra_depth;
+        servers = t.servers;
+        subdomains = t.subdomains;
+        ROBOTS = t.robots;
+        cpp = subdomains.length;
+        server_cnt = servers.length;
         
         /* Set up and run DNS server */
         /*
@@ -118,6 +115,24 @@ public class TestCase extends Thread{
                                 "", "", 
                                 subdomains[sib_index].location, 
                                 false);
+                    } else if(subdomains[sib_index].is_redirect == 2) { /* an empty html node */
+                        nodes[main_index] = new BlankServerNode(
+                                server_name,
+                                paths[sib_index],
+                                "", "",
+                                null, false);
+                    } else if(subdomains[sib_index].is_redirect == 3) { /* a non-broken non-empty html node */
+                        nodes[main_index] = new BlankServerNode(
+                                server_name,
+                                paths[sib_index],
+                                "", "",
+                                subdomains[sib_index].location, false);
+                    } else if(subdomains[sib_index].is_redirect == 4) { /* a broken non-empty html node */
+                        nodes[main_index] = new BlankServerNode(
+                                server_name,
+                                paths[sib_index],
+                                "", "",
+                                subdomains[sib_index].location, true);
                     } else {                                             /* a regular node */
                         nodes[main_index] = new HTMLServerNode(
                                 server_name, 
@@ -154,7 +169,7 @@ public class TestCase extends Thread{
 
         for (int i = 0; i < cpp; i++) {
             children_paths[i] = new String(subdomains[i].name).replaceFirst("@", replacement_tkn); 
-            /* add these to list of all urls */
+            /* add these to list of all urls avoid nodes generated but that don't exist*/
             if (!all_urls.contains(server + children_paths[i]) && subdomains[family_index % cpp].is_redirect == -1) {
                 all_urls.add(server + children_paths[i]);
             }
@@ -247,7 +262,7 @@ public class TestCase extends Thread{
     public InetAddress[] getIPs(boolean only_seeds) {
         InetAddress[] ips = new InetAddress[server_cnt];
         int i = 0;
-        for (Server server : servers) {
+        for (TestObjects.Server server : servers) {
             if (server.is_seed || !only_seeds) {
                try {
                     byte[] addr = new byte[]{127, 0, 0, server.ip};
@@ -278,7 +293,7 @@ public class TestCase extends Thread{
     public String[] getURLs(boolean only_seeds) {
         String[] urls = new String[server_cnt];
         int i = 0;
-        for (Server server : servers) {
+        for (TestObjects.Server server : servers) {
            if (server.is_seed || !only_seeds) {
                 urls[i++] = server.name;
            }
@@ -301,56 +316,7 @@ public class TestCase extends Thread{
         return DEPTH;
     }
 
-    /**
-     * Represents a server entity
-     */
-    protected class Server {
-        
-        protected String name;
-        protected byte ip;
-        protected int port;
-        protected boolean should_visit;
-        protected boolean is_seed;
 
-        /** 
-         * @param name          the name of the server 
-         * @param ip            the last byte of the local ip
-         * @param port          the port number, -1 for default port 80 
-         * @param should_visit  true iff the server should be visited
-         * @param is_seed       true iff this server should be given to crawler 
-         *                      as a seed url
-         */
-        public Server(String name, byte ip, int port, boolean should_visit, boolean is_seed) {
-            this.name = name;
-            this.ip = ip;
-            this.port = port;
-            this.should_visit = should_visit;
-            this.is_seed = is_seed;
-        }
-    } 
-
-    /**
-     * Represents a sub_domain node
-     */
-    protected class Node {
-
-        protected String name;
-        protected int is_redirect;
-        protected String location;
-
-        /**
-         * @param name          the name of the subdomain
-         * @param is_redirect   -1 iff not a redirect node, 
-         *                      0 iff the node is a redirect,
-         *                      1 iff the node links to new domain, but not redirect 
-         * @param location      the redirect location, or null
-         */
-        public Node(String name, int is_redirect, String location) {
-            this.name = name;
-            this.is_redirect = is_redirect;
-            this.location = location;
-        }
-    }
 } 
 
 

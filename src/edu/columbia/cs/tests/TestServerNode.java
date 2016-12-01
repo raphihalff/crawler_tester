@@ -147,7 +147,7 @@ public class TestServerNode
 		id = toID(path, short_id);
 		this.status = status;
 		this.content_type = content_type;
-		this.contents = contents.clone();
+		this.contents = (contents == null) ? null : contents.clone();
 		this.children = TestServer.createNodeMap(children);
 	}
 
