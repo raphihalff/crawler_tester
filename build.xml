@@ -7,7 +7,7 @@
     <property name="libs_dir" location="libs" />
     <property name="classes_dir" location="${out_dir}/classes" />
     <property name="crawler" location="crawler4j" />
-    <property name="domain_crawler" location="crawler/DomainCrawler" />
+    <property name="domain_crawler" location="../DomainCrawler" />
     
     <property name="crawler_exts" value="crawler_starter" />
     <property name="dns_server" value="dns_server" />
@@ -80,7 +80,6 @@
     <target name="domain_crawler" description="compile the domain_crawler in submodule">
         <!-- execute the domain crawlers ant file and copy over the jar -->
         <exec executable="ant" dir="${domain_crawler}" >
-            <arg line="jar" />
         </exec>
         <copy file="${domain_crawler}/out/jar/domain_crawler.jar" todir="${libs_dir}" />
     </target>
@@ -125,8 +124,9 @@
     
     <target name="all" description="compile all classes" depends="clean, setup_crawler, tests" >
     </target>
+
     
-    <target name="full_init" description="compile all classes and submodules" depends="clean, update_lib,  setup_crawler, tests" >
+    <target name="full_init" description="compile all classes and submodules" depends="clean, update_lib, domain_crawler,  setup_crawler, tests" >
     </target>
 
     <target name="clean" description="cleans up output directory">
