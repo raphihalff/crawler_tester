@@ -21,12 +21,15 @@
 
     <property name="tests_pkg" value="edu.columbia.cs.tests" />
 
-    <target name="init" description="create output directories" >
+    <target name="init" description="create output directories, initialize submodule" >
         <mkdir dir="${out_dir}" />
         <mkdir dir="${classes_path}" />
+        <exec executable="git" dir="${crawler}" >
+            <arg line="submodule init" />
+        </exec>
     </target>
     
-    <target name="gen_jar" description="update the submodule cralwer4j and generates jar" > 
+    <target name="gen_jar" description="update the submodule cralwer4j and generates jar" depends="init" > 
         <!-- Update the submodule -->
         <exec executable="git" dir="${crawler}" >
             <arg line="submodule update" />
@@ -44,7 +47,7 @@
         <copy file="${crawler}/target/crawler4j-4.3-SNAPSHOT-jar-with-dependencies.jar" todir="${libs_dir}" />
     </target>
     
-    <target name="setup_crawler" description="compile the classes that extend the crawler" depends="init, domain_crawler" >
+    <target name="setup_crawler" description="compile the classes that extend the crawler" depends="init" >
         <mkdir dir="${classes_path}/${crawler_exts}" />
         <javac srcdir="${src_path}/${crawler_exts}" destdir="${classes_dir}"
             includeAntRuntime="false" debug="true" debugLevel="lines,source"
@@ -120,7 +123,10 @@
         -->
     </target>
     
-    <target name="all" description="compile all classes" depends="clean, setup_crawler, dns_server, tests" >
+    <target name="all" description="compile all classes" depends="clean, setup_crawler, tests" >
+    </target>
+    
+    <target name="full_init" description="compile all classes and submodules" depends="clean, update_lib,  setup_crawler, tests" >
     </target>
 
     <target name="clean" description="cleans up output directory">
