@@ -204,6 +204,14 @@ public class TestObjects {
         String rdr_robots = "User-agent: *\nDisallow: /redirect* \n";
         String rdr2_robots = "User-agent: *\nDisallow: www.bad-rdr.fr \n";
 
+        /* For domain crawler */
+        /*
+        tests = new TestObject[]{new TestObject("REGULAR REDIRECT", 2, 1, single_servers, single_rdr_nodes, all_robots),
+            new TestObject("BADLY FORMED REDIRECT", 2, 1, single_servers, single_bad_rdr_nodes, all_robots),
+            new TestObject("EMPTY HTML PAGES", 2, 1, single_straight_servers, empty_nodes, all_robots),
+            new TestObject("ROBOTS VS REDIRECT", 3, 1, single_servers, rbtsVrdr_nodes, rdr_robots),
+            new TestObject("ROBOTS VS REDIRECT NUMBER 2", 3, 1, single_servers, single_rbtsVrdr_nodes, rdr2_robots)
+        };*/
         /* For regular crawler */
         tests = new TestObject[]{new TestObject("REGULAR REDIRECT", 2, 1, mixed_servers, rdr_nodes, all_robots),
             new TestObject("BADLY FORMED REDIRECT", 2, 1, mixed_servers, bad_rdr_nodes, all_robots),
