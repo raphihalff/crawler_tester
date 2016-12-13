@@ -1,10 +1,12 @@
 package edu.columbia.cs.tests;
 
 import edu.columbia.cs.crawler_starter.CrawlerStarter;
-import edu.columbia.cs.domain_crawler.DomainCrawler;
 import java.net.InetAddress;
 import org.apache.http.impl.conn.InMemoryDnsResolver;
 
+/**
+ * Main class that runs the test servers and the crawler.
+ */
 public class TestDriver {
 
     private static int depth;
@@ -71,7 +73,7 @@ public class TestDriver {
             System.out.print("\nstopping servers\n");
             test.stopServers();
             System.out.println("\n" + t.title + "\n");
-            test.sendVisits();
+            test.sendVisits(t.title);
         }
     }
 

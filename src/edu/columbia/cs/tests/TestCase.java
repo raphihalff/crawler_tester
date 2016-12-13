@@ -1,15 +1,6 @@
 /**
- * The TestCase class should contain:
- *      (1) the depth we want to crawler to crawl 
- *      (2) the seed URLs the crawler will begin with  
- *      (3) the server that will be running and
- *      (4) the monitor class that will be running and passed to each server
- *
- * The TestCase should establish the servers, initialize the DNS server and 
- * pass the the depth and seed URLs to the TestDriver 
- * (which will send them to a class extending the web crawler)
- * The test settings are statically defined.
- *
+ * The TestCase runs an individual test given servers and nodes (TestObjects) from the TestDriver,
+ * the DNS resolver is set up in TestDriver and CrawlerStarter.
  * @author Raphi
  */
 
@@ -43,7 +34,9 @@ public class TestCase extends Thread{
     private ArrayList<String> all_urls; 
 
     private Monitor monitor;
-
+    /**
+     * @param t the TestObject containing the servers and nodes to be tested
+     */
     public TestCase(TestObjects.TestObject t) {
 
         /* Get the tests variables */
@@ -200,10 +193,6 @@ public class TestCase extends Thread{
                 server_objs[i].setPort(servers[i].port);
             }
 
-            /* add servername to url list */
-            if (!all_urls.contains(servers[i].name + "/")) {
-                all_urls.add(servers[i].name + "/");
-            }
             
             /* and monitor to servers */
             server_objs[i].setMonitor(monitor);
@@ -228,7 +217,8 @@ public class TestCase extends Thread{
         }
     }
 
-    protected void sendVisits() {
+    protected void sendVisits(String test_title) {
+        monitor.print(test_title);
         for (TestServer server : server_objs) {
             monitor.checkVisits();
         }
@@ -258,6 +248,7 @@ public class TestCase extends Thread{
 
     /**
      * @param only_seeds        if true, returns only the seed urls, not all urls
+     * @return the corresponding IP addresses ({@code InetAddress}) 
      */
     public InetAddress[] getIPs(boolean only_seeds) {
         InetAddress[] ips = new InetAddress[server_cnt];
@@ -289,6 +280,7 @@ public class TestCase extends Thread{
 
     /**
      * @param only_seeds        if true, returns only the seed urls, not all urls
+     * @return the seed urls or all urls
      */
     public String[] getURLs(boolean only_seeds) {
         String[] urls = new String[server_cnt];

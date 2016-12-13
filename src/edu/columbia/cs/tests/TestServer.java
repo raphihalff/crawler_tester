@@ -439,9 +439,9 @@ public class TestServer implements HttpHandler
 		return false;
 	}
 
-	/*
+	/**
 	 * Check if a node was visited in the correct
-	 * (depth-first from {@code starters}) order.
+	 * (depth-first from {@code starters}) order
 	 * If not, log the error and return {@literal false},
 	 * telling the caller to not proceed.
 	 * @param node		the node that was just visited

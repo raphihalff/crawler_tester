@@ -3,7 +3,8 @@ package edu.columbia.cs.tests;
 import java.net.HttpURLConnection;
 
 /**
- * A HTML page node that contains only HTML links to its children.
+ * A HTML page node that contains only empty html tags or corrupted html (missing tags).
+ * 
  */
 public class BlankServerNode extends TestServerNode
 {
@@ -17,7 +18,14 @@ public class BlankServerNode extends TestServerNode
 	/** the template for the broken HTML body */
 	private static final String
 	BROKEN_HTML_TEMPLATE = "<html><head></head><body>\n%s\n";
-
+        
+        /**
+         * Generates HTML content, either corrupted or not
+         * @param body          content to go within HTML tags
+         * @param is_broken     true for corrupted HTML tags, 
+         *                      false for proper tags
+         * @return the formated content
+         */
         protected static String generateContent(String body, boolean is_broken)
 	{
                 

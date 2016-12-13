@@ -7,7 +7,7 @@ import java.io.IOException;
 
 import java.util.Random;
 /**
- * A HTML page node that contains only HTML links to its children.
+ * A node to represent a http redirect or an external link (a regular html link but to another server)
  */
 public class RedirectServerNode extends TestServerNode
 {
@@ -30,7 +30,7 @@ public class RedirectServerNode extends TestServerNode
         private final String location;
         
         /**
-	 * Generate an HTML content.
+	 * Generate an HTML link.
 	 * @param child_url	the URL reference to the child
 	 * @return		an HTML-formatted link to the child
 	 */
@@ -40,13 +40,12 @@ public class RedirectServerNode extends TestServerNode
 	}
 
         /**
-	 * Return true if the redirect address is same as "child" server
-	 * @return	{@literal true} iff the child is in the same server,
-	 *		and a child of this node
+	 * @return	{@literal true} 
          * @override
 	 */
 	public boolean checkChild(TestServerNode child) {
-            return true;/*   
+            return true;
+            /*   
             if (child.getServerName().equals(location)) {
                 return true;
             } else {
@@ -55,6 +54,7 @@ public class RedirectServerNode extends TestServerNode
 	}
 
         /**
+         * Get a random redirect status (moved_tmp, moved_perm, see_other, or mult_choice)
          * @return      one of four redirect statuses selected at random
          */
         private static int getRedirectStatus() {

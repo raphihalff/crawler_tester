@@ -2,11 +2,10 @@ package edu.columbia.cs.tests;
 
 import java.util.LinkedList;
 import java.util.ArrayList;
+import java.io.FileWriter;
+import java.io.IOException;
 /**
- * -Keep track of crawler's current depth and enforce it
- * -Enforce BFS crawling order
- * -Ensure that prohibited nodes remain unvisited
- * -Ensure after crawl, that all good nodes were visited.
+ * Monitor to verify which nodes were properly or improperly visited (or not visited) by crawler
  */
 public class Monitor {
     /* The max depth that should be crawled (inclusive) */
@@ -52,6 +51,7 @@ public class Monitor {
     }
 
     /**
+     * Set the urls that must be visted by crawler
      * @param urls      the list of all urls that should be visited
      */
     public void setURLs(ArrayList<String> urls) {
@@ -79,6 +79,7 @@ public class Monitor {
     }
     
     /**
+     * Set the servers for this test
      * @param starter_nodes     the starting nodes for this server
      */
     public void addStarters(TestObjects.Server[] servers) {
@@ -86,10 +87,10 @@ public class Monitor {
         int seed_cnt = 0;     
         for (TestObjects.Server server : this.servers) {
             if (server.is_seed && server.should_visit) {
-                to_visit_nodes.add(server.name);
+//                to_visit_nodes.add(server.name);
                 seed_cnt++;
             } else if (server.should_visit) {
-                to_visit_nodes.add(server.name);
+//                to_visit_nodes.add(server.name);
             } else {
                 prohib_nodes.add(server.name);
             }
@@ -97,6 +98,11 @@ public class Monitor {
         nodes_this_depth = seed_cnt * CPP;
     }
 
+    /**
+     * Checks if node was visited correctly and logs result
+     * @param new_node  the node to be checked
+     * @return true iff node is correctly visited
+     */
     public boolean verify(TestServerNode new_node) {
         String url = new_node.getServerName() + new_node.id;
         if (to_visit_nodes.remove(url)) {
@@ -111,23 +117,60 @@ public class Monitor {
         return true;
     }
 
+    protected void print(String text) {
+        try {    
+            FileWriter f = new FileWriter("results", true);
+            f.write("\n" + text + "\n", 0, text.length() + 2);
+            f.close(); 
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+    
+    /**
+     * Ouputs visitation results for visited nodes.
+     * @return true, iff there was no error
+     */
     protected boolean checkVisits() { 
         boolean correct = true;
-        for (TestVisitRecord visit : log) {
-            if (visit.hasError()) {
-                System.out.println("Error--Should NOT have been visited: " + visit.getURL());
-                correct = false;
-            } else {
-                System.out.println("Error--Ambiguous, this WAS visited: " + visit.getURL());
-                correct = false;
-            } 
+        try {
+            FileWriter f = new FileWriter("results", true);
+            for (TestVisitRecord visit : log) {
+                if (visit.hasError()) {
+                    System.out.println("Error--Should NOT have been visited: " + visit.getURL());
+                    String tmp = "Error--Should NOT have been visited: " + visit.getURL() + "\n";
+                    f.write(tmp, 0, tmp.length());
+                    correct = false;
+                } else {
+                    System.out.println("Error--Ambiguous, this WAS visited: " + visit.getURL());
+                    String tmp = "Error--Ambiguous, this WAS visited: " + visit.getURL() + "\n";
+                    f.write(tmp, 0, tmp.length());
+                    correct = false;
+                } 
+            }
+            f.close();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
         }
+
         return correct;
     }
 
+    /**
+     * Outputs visitation results for node that should have been visited, but were not
+     * @return true, iff there were no errors (everything was visited)
+     */
     protected boolean checkShouldHaves() {
-        for (String node : to_visit_nodes) { 
-            System.out.println("Error--Should have been visited: " + node);
+        try {
+            FileWriter f = new FileWriter("results", true);
+            for (String node : to_visit_nodes) { 
+                System.out.println("Error--Should have been visited: " + node);
+                String tmp = "Error--Should have been visited: " + node + "\n";
+                f.write(tmp, 0, tmp.length());
+            }
+            f.close();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
         }
         return to_visit_nodes.isEmpty();
     } 

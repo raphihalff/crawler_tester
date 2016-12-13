@@ -1,9 +1,9 @@
-/**
- * The test objects to be sent by TestDriver to be run by 
- */
-
 package edu.columbia.cs.tests;
 
+/**
+ * The test objects to be sent by TestDriver and run by TestCase,
+ * consist of Servers and Nodes. 
+ */
 public class TestObjects {
 
     private TestObject[] tests;
@@ -24,6 +24,14 @@ public class TestObjects {
         /* the robots contents */
         protected String robots;
 
+        /**
+         * @param title         the title of the test
+         * @param depth         the max depth for the test
+         * @param xtra-depth    number of additional levels of unreachable nodes to be made
+         * @param servers       the set of servers in this test
+         * @param subdomains    the set of nodes in this test
+         * @param robots        the robots for this test
+         */
         public TestObject(String title, int depth, int xtra_depth, Server[] servers, 
                 Node[] subdomains, String robots) {
             this.title = title;
@@ -90,10 +98,16 @@ public class TestObjects {
         }
     }
     
+    /**
+     * @return the array of tests
+     */
     protected TestObject[] getTests() {
         return tests;
     }
 
+    /**
+     * Statically define TestObjects
+     */
     public TestObjects() {
 
         Server[] single_servers = {
@@ -104,6 +118,13 @@ public class TestObjects {
         };
         Server[] single_straight_servers = {
             new Server("www.ids.org",       (byte)0b0010, -1, true, true)  /* reachable and seed */
+        };
+        Server[] single_sub_servers = {
+            new Server("ids.org",           (byte)0b0001, -1, true, true),  /* reachable and seed */
+            new Server("www.ids.org",       (byte)0b0010, -1, true, false),  /* reachable and not seed */
+            new Server("cs.ids.org",        (byte)0b0011, -1, true, false),  /* reachable and not seed */
+            new Server("cs.click.ids.org",  (byte)0b0100, -1, true, false),  /* reachable and not seed */
+            new Server("ids.cs.org",        (byte)0b0101, -1, false, false)  /* not reachable and not seed */
         };
         Server[] straight_servers = {
             new Server("www.example.com",   (byte)0b0001, -1, true, true),  /* reachable and seed */
@@ -132,6 +153,14 @@ public class TestObjects {
             new Node("/go/here@.html",      -1, null),                      /* not redirect */
             new Node("/redirect@",           0, "http://www.good-rdr.fr"),  /* is redirect */
             new Node("/bad_link@",          1, "http://www.bad-rdr.fr")     /* is external link */
+        };
+        Node[] subdomain_nodes = {
+            new Node("/index@.html",        -1, null),                      /* not redirect */
+            new Node("/please_enter@",      -1, null),                      /* not redirect */ 
+            new Node("/rdr_sub@",            0, "http://www.ids.org"),      /* is redirect */
+            new Node("/sub@",                1, "http://cs.click.ids.org"), /* is external link */
+            new Node("/sub_@_np",            1, "cs.ids.org"),              /* is external link */
+            new Node("/bad_sub@",            1, "http://ids.cs.org")        /* is external link */
         };
         Node[] single_bad_rdr_nodes = {
             new Node("/index@.html",        -1, null),                      /* not redirect */
@@ -175,21 +204,13 @@ public class TestObjects {
         String rdr_robots = "User-agent: *\nDisallow: /redirect* \n";
         String rdr2_robots = "User-agent: *\nDisallow: www.bad-rdr.fr \n";
 
-        /* For domain crawler */
-        tests = new TestObject[]{new TestObject("REGULAR REDIRECT", 2, 1, single_servers, single_rdr_nodes, all_robots),
-            new TestObject("BADLY FORMED REDIRECT", 2, 1, single_servers, single_bad_rdr_nodes, all_robots),
-            new TestObject("EMPTY HTML PAGES", 2, 1, single_straight_servers, empty_nodes, all_robots),
-            new TestObject("ROBOTS VS REDIRECT", 3, 1, single_servers, rbtsVrdr_nodes, rdr_robots),
-            new TestObject("ROBOTS VS REDIRECT NUMBER 2", 3, 1, single_servers, single_rbtsVrdr_nodes, rdr2_robots)
-        };
         /* For regular crawler */
-        /*
         tests = new TestObject[]{new TestObject("REGULAR REDIRECT", 2, 1, mixed_servers, rdr_nodes, all_robots),
             new TestObject("BADLY FORMED REDIRECT", 2, 1, mixed_servers, bad_rdr_nodes, all_robots),
             new TestObject("EMPTY HTML PAGES", 2, 1, straight_servers, empty_nodes, all_robots),
             new TestObject("ROBOTS VS REDIRECT", 3, 1, mixed_servers, rbtsVrdr_nodes, rdr_robots),
-            new TestObject("ROBOTS VS REDIRECT NUMBER 2", 3, 1, mixed_servers, rbtsVrdr_nodes, rdr2_robots)
+            new TestObject("ROBOTS VS REDIRECT NUMBER 2", 3, 1, mixed_servers, rbtsVrdr_nodes, rdr2_robots),
+            new TestObject("SUBDOMAINS", 2, 1, single_sub_servers, subdomain_nodes, all_robots)
         };
-        */
     }
 }
