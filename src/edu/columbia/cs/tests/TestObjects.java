@@ -122,7 +122,7 @@ public class TestObjects {
         Server[] single_sub_servers = {
             new Server("ids.org",           (byte)0b0001, -1, true, true),  /* reachable and seed */
             new Server("www.ids.org",       (byte)0b0010, -1, true, false),  /* reachable and not seed */
-            new Server("cs.ids.org",        (byte)0b0011, -1, true, false),  /* reachable and not seed */
+            new Server("cs.ids.org",        (byte)0b0011, -1, false, false),  /* reachable and not seed */
             new Server("cs.click.ids.org",  (byte)0b0100, -1, true, false),  /* reachable and not seed */
             new Server("ids.cs.org",        (byte)0b0101, -1, false, false)  /* not reachable and not seed */
         };
@@ -205,20 +205,21 @@ public class TestObjects {
         String rdr2_robots = "User-agent: *\nDisallow: www.bad-rdr.fr \n";
 
         /* For domain crawler */
-        /*
+        
         tests = new TestObject[]{new TestObject("REGULAR REDIRECT", 2, 1, single_servers, single_rdr_nodes, all_robots),
             new TestObject("BADLY FORMED REDIRECT", 2, 1, single_servers, single_bad_rdr_nodes, all_robots),
             new TestObject("EMPTY HTML PAGES", 2, 1, single_straight_servers, empty_nodes, all_robots),
             new TestObject("ROBOTS VS REDIRECT", 3, 1, single_servers, rbtsVrdr_nodes, rdr_robots),
             new TestObject("ROBOTS VS REDIRECT NUMBER 2", 3, 1, single_servers, single_rbtsVrdr_nodes, rdr2_robots)
-        };*/
+        };
         /* For regular crawler */
+        /*
         tests = new TestObject[]{new TestObject("REGULAR REDIRECT", 2, 1, mixed_servers, rdr_nodes, all_robots),
             new TestObject("BADLY FORMED REDIRECT", 2, 1, mixed_servers, bad_rdr_nodes, all_robots),
             new TestObject("EMPTY HTML PAGES", 2, 1, straight_servers, empty_nodes, all_robots),
             new TestObject("ROBOTS VS REDIRECT", 3, 1, mixed_servers, rbtsVrdr_nodes, rdr_robots),
             new TestObject("ROBOTS VS REDIRECT NUMBER 2", 3, 1, mixed_servers, rbtsVrdr_nodes, rdr2_robots),
             new TestObject("SUBDOMAINS", 2, 1, single_sub_servers, subdomain_nodes, all_robots)
-        };
+        };*/
     }
 }
